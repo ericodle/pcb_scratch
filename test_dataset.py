@@ -7,7 +7,7 @@ import numpy as np
 from transforms import get_transform  # Import the transform function
 
 # Update this path to your folder containing images and JSON annotations
-FOLDER_PATH = "test_imgs"  # Folder containing both images and annotations
+FOLDER_PATH = "train_imgs"  # Folder containing both images and annotations
 OUTPUT_DIR = "reconstructed_images"  # Folder to save the output images
 
 # Ensure the output directory exists

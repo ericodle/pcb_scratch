@@ -6,13 +6,16 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import torchvision
 import numpy as np
+from transforms import get_transform  # Import the transform function
 
 # Update these paths to match your project structure
 ANNOTATION_FILE = "/home/eo/pcb_scratch/0009_1_yuka.json"
 IMAGES_DIR = "/home/eo/pcb_scratch/"
 
 def visualize_sample(image, target):
-    image = np.array(image)  # Convert PIL image to NumPy array (HWC format)
+    # Convert from [C, H, W] (Tensor) to [H, W, C] (NumPy)
+    image = image.permute(1, 2, 0).numpy()
+
     fig, ax = plt.subplots(1)
     ax.imshow(image)
 
@@ -22,12 +25,13 @@ def visualize_sample(image, target):
                                  linewidth=2, edgecolor='r', facecolor='none')
         ax.add_patch(rect)
 
-    plt.savefig("output_image.png")  # Save the image instead of showing it
-    plt.close(fig)  # Close the figure to avoid memory issues
+    plt.savefig("output_image.png")
+    plt.close(fig)
 
 def main():
-    # Initialize the dataset and dataloader
-    dataset = CustomAnnotationParser(ANNOTATION_FILE, IMAGES_DIR)
+    # Initialize the dataset and dataloader with the transform
+    transform = get_transform(train=False)  # Use transform for testing (False for no training augmentations)
+    dataset = CustomAnnotationParser(ANNOTATION_FILE, IMAGES_DIR, transform=transform)
     
     print(f"Dataset length: {len(dataset)}")  # Debugging the length of the dataset
     
@@ -41,7 +45,7 @@ def main():
     for images, targets in dataloader:
         img = images[0]
         tgt = targets[0]
-        print(f"Image size: {img.size}, Boxes: {tgt['boxes'].shape}, Labels: {tgt['labels']}")
+        print(f"Image size: {img.size()}, Boxes: {tgt['boxes'].shape}, Labels: {tgt['labels']}")
         visualize_sample(img, tgt)
         break  # Test one sample only
 

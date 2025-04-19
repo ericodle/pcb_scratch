@@ -3,3 +3,4 @@ __pycache__/
 trained_models/
 train_plots/
 test_imgs/
+reconstructed_images/

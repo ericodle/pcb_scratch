@@ -1,5 +1,3 @@
-# annotation_parser.py
-
 import json
 from pathlib import Path
 import torch
@@ -7,21 +5,42 @@ from torch.utils.data import Dataset
 from PIL import Image
 
 class CustomAnnotationParser(Dataset):
-    def __init__(self, json_path, images_dir, transform=None):
-        with open(json_path) as f:
-            annotations_data = json.load(f)
-
-        self.images_dir = Path(images_dir)
+    def __init__(self, folder_path, transform=None):
+        self.folder_path = Path(folder_path)
         self.transform = transform
+        
+        # List all the JSON files in the folder
+        self.annotation_files = list(self.folder_path.glob('*.json'))
 
-        self.image_filename = annotations_data.get("imagePath", "")
-        self.shapes = annotations_data.get("shapes", [])
+        # Prepare a list to hold image and annotation paths
+        self.image_paths = []
+        self.annotation_data = []
+        
+        for ann_file in self.annotation_files:
+            with open(ann_file) as f:
+                annotations_data = json.load(f)
 
-        # Map label to ID
-        unique_labels = list(set([s["label"] for s in self.shapes]))
-        self.label_to_id = {label: idx + 1 for idx, label in enumerate(unique_labels)}
+            image_filename = annotations_data.get("imagePath", "")
+            if not image_filename:
+                continue
 
-        self.boxes, self.labels = self.convert_polygons_to_boxes(self.shapes)
+            # Get the corresponding image path
+            image_path = self.folder_path / image_filename
+            if image_path.exists():
+                self.image_paths.append(image_path)
+                self.annotation_data.append(annotations_data)
+
+        # Initialize label mappings
+        self.label_to_id = self.create_label_mapping()
+
+    def create_label_mapping(self):
+        # Create a unique mapping from labels to IDs
+        all_labels = set()
+        for ann in self.annotation_data:
+            for shape in ann.get("shapes", []):
+                all_labels.add(shape["label"])
+        
+        return {label: idx + 1 for idx, label in enumerate(all_labels)}
 
     def convert_polygons_to_boxes(self, shapes):
         boxes = []
@@ -37,13 +56,20 @@ class CustomAnnotationParser(Dataset):
         return boxes, labels
 
     def __len__(self):
-        return 1  # One image per JSON
+        return len(self.image_paths)  # Return the number of image files
 
     def __getitem__(self, idx):
-        image = Image.open(self.images_dir / self.image_filename).convert("RGB")
+        # Get the image path and corresponding annotation
+        image_path = self.image_paths[idx]
+        annotation = self.annotation_data[idx]
 
-        boxes = torch.tensor(self.boxes, dtype=torch.float32)
-        labels = torch.tensor(self.labels, dtype=torch.int64)
+        image = Image.open(image_path).convert("RGB")
+
+        boxes, labels = self.convert_polygons_to_boxes(annotation.get("shapes", []))
+        
+        boxes = torch.tensor(boxes, dtype=torch.float32)
+        labels = torch.tensor(labels, dtype=torch.int64)
+
         target = {
             "boxes": boxes,
             "labels": labels,

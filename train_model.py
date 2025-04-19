@@ -1,4 +1,5 @@
 import torch
+import logging
 import matplotlib.pyplot as plt
 from train import train_model
 from model import create_faster_rcnn_model
@@ -6,82 +7,86 @@ from annotation_parser import CustomAnnotationParser
 from transforms import get_transform
 from torch.utils.data import DataLoader
 
+# Setup logger
+logging.basicConfig(filename='training.log', level=logging.INFO)
+logger = logging.getLogger()
+
+# File paths and settings
 ANNOTATION_FILE = "/home/eo/pcb_scratch/0009_1_yuka.json"
 IMAGES_DIR = "/home/eo/pcb_scratch/"
+NUM_CLASSES = 1 + 10  # Example with 10 classes
 
-# Count your labels + 1 for background
-NUM_CLASSES = 1 + 10  # Example if you have 10 classes
-
+# Data setup
 dataset = CustomAnnotationParser(ANNOTATION_FILE, IMAGES_DIR, transform=get_transform(train=True))
 data_loader = DataLoader(dataset, batch_size=1, shuffle=True, collate_fn=lambda x: tuple(zip(*x)))
 
+# Set up device and model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = create_faster_rcnn_model(NUM_CLASSES)
 
-# Move the model to the correct device
-model.to(device)
+# Initialize loss lists for plotting
+loss_classifier_values = []
+loss_box_reg_values = []
+loss_objectness_values = []
+loss_rpn_box_reg_values = []
 
-# List to store loss values for plotting and detailed tracking
-losses = []
-detailed_losses = []  # List to track detailed loss components
+from train import create_optimizer  # Add this import statement
 
-# Function to save the plot
-def save_loss_plot(losses, filename="loss_plot.png"):
-    plt.plot(losses)
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.title('Training Loss Over Epochs')
-    plt.savefig(filename)
-    print(f"Loss plot saved as {filename}")
-    plt.close()
-
-# Function to save the model
-def save_model(model, filename="trained_models/faster_rcnn_model.pth"):
-    torch.save(model.state_dict(), filename)
-    print(f"Model saved as {filename}")
-
-# Modify your train_model function to store the loss for each epoch and detailed loss components
 def train_model_with_loss_tracking(model, data_loader, device, num_epochs=10):
+    model.to(device)
     model.train()
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.005, momentum=0.9, weight_decay=0.0005)
-    
+
+    # Initialize the optimizer here
+    optimizer = create_optimizer(model)  # Create optimizer using your function
+
     for epoch in range(num_epochs):
-        epoch_loss = 0  # Track loss for each epoch
+        total_loss = 0
+        print(f"Starting epoch {epoch+1}/{num_epochs}...")  # Print info for the current epoch
+
         for images, targets in data_loader:
-            # Move the images and targets to the correct device
             images = [image.to(device) for image in images]
             targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
-            
-            # Zero gradients
-            optimizer.zero_grad()
-            
+
             # Forward pass
             loss_dict = model(images, targets)
-            total_loss = sum(loss for loss in loss_dict.values())  # Total loss
-            
-            # Backward pass
-            total_loss.backward()
-            optimizer.step()
-            
-            epoch_loss += total_loss.item()
+            losses = sum(loss for loss in loss_dict.values())
 
-            # Record detailed loss components
-            detailed_loss = {
-                "loss_classifier": loss_dict["loss_classifier"].item(),
-                "loss_box_reg": loss_dict["loss_box_reg"].item(),
-                "loss_objectness": loss_dict["loss_objectness"].item(),
-                "loss_rpn_box_reg": loss_dict["loss_rpn_box_reg"].item(),
-            }
-            detailed_losses.append(detailed_loss)
-        
-        # Average loss for the epoch
-        avg_loss = epoch_loss / len(data_loader)
-        losses.append(avg_loss)  # Append the average loss of this epoch to the list
-        
-        print(f"Epoch {epoch} | Loss: {avg_loss:.4f}")
-    
-    save_loss_plot(losses)  # Save the loss plot
-    save_model(model)  # Save the model
+            # Log detailed losses
+            logger.info(f"Epoch [{epoch+1}/{num_epochs}] Losses: {loss_dict}")
+            print(f"Losses: {loss_dict}")  # Print losses to the console
 
-# Run the training with loss tracking
+            # Track individual losses for plotting
+            loss_classifier_values.append(loss_dict['loss_classifier'].item())
+            loss_box_reg_values.append(loss_dict['loss_box_reg'].item())
+            loss_objectness_values.append(loss_dict['loss_objectness'].item())
+            loss_rpn_box_reg_values.append(loss_dict['loss_rpn_box_reg'].item())
+
+            # Backpropagation and optimization
+            optimizer.zero_grad()  # Zero gradients
+            losses.backward()      # Backpropagation
+            optimizer.step()       # Update model parameters
+
+            total_loss += losses.item()
+
+        # Average loss for this epoch
+        avg_loss = total_loss / len(data_loader)
+        logger.info(f"Epoch [{epoch+1}/{num_epochs}] Average Loss: {avg_loss:.4f}")
+        print(f"Epoch [{epoch+1}/{num_epochs}] Average Loss: {avg_loss:.4f}")  # Print avg loss to the console
+
+    # Plot loss components after training
+    plot_loss("loss_classifier", loss_classifier_values)
+    plot_loss("loss_box_reg", loss_box_reg_values)
+    plot_loss("loss_objectness", loss_objectness_values)
+    plot_loss("loss_rpn_box_reg", loss_rpn_box_reg_values)
+
+def plot_loss(loss_name, loss_values):
+    plt.figure()
+    plt.plot(loss_values)
+    plt.title(f'{loss_name} over epochs')
+    plt.xlabel('Iteration')
+    plt.ylabel(f'{loss_name} value')
+    plt.savefig(f"{loss_name}_plot.png")  # Save the plot as a PNG file
+    plt.close()
+
+# Start training with logging and plotting
 train_model_with_loss_tracking(model, data_loader, device, num_epochs=10)

@@ -36,7 +36,7 @@ def save_loss_plot(losses, filename="loss_plot.png"):
     plt.close()
 
 # Function to save the model
-def save_model(model, filename="faster_rcnn_model.pth"):
+def save_model(model, filename="trained_models/faster_rcnn_model.pth"):
     torch.save(model.state_dict(), filename)
     print(f"Model saved as {filename}")
 

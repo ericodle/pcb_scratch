@@ -1,3 +1,5 @@
+import os
+import time
 import torch
 import logging
 import matplotlib.pyplot as plt
@@ -11,12 +13,14 @@ logging.basicConfig(filename='training.log', level=logging.INFO)
 logger = logging.getLogger()
 
 # File paths and settings
-ANNOTATION_FILE = "/home/eo/pcb_scratch/0009_1_yuka.json"
-IMAGES_DIR = "/home/eo/pcb_scratch/"
+FOLDER_PATH = "test_imgs"   # Folder containing both images and annotations
+IMAGES_DIR = os.path.join(FOLDER_PATH, "images")  # Assuming images are stored in a subfolder 'images'
+ANNOTATIONS_DIR = os.path.join(FOLDER_PATH, "annotations")  # Assuming annotations are in a subfolder 'annotations'
 NUM_CLASSES = 1 + 10  # Example with 10 classes
 
 # Data setup
-dataset = CustomAnnotationParser(ANNOTATION_FILE, IMAGES_DIR, transform=get_transform(train=True))
+dataset = CustomAnnotationParser(folder_path=FOLDER_PATH, transform=get_transform(train=True))
+
 data_loader = DataLoader(dataset, batch_size=1, shuffle=True, collate_fn=lambda x: tuple(zip(*x)))
 
 # Set up device and model
@@ -103,7 +107,6 @@ def train_model(model, data_loader, device, num_epochs=10):
         evaluate(model, data_loader, device)  # Evaluate the model
 
         print(f"[Epoch {epoch}] Completed in {time.time() - start:.2f} seconds.\n")
-
 
 
 # Start training with logging and plotting

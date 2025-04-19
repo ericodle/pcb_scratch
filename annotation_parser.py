@@ -1,53 +1,71 @@
-import os
+# utils/annotation_parser.py
+
 import json
-from PIL import Image
+from pathlib import Path
+from collections import defaultdict
 import torch
-from torch.utils.data import Dataset
+from PIL import Image
 
-class CustomAnnotationParser(Dataset):
-    def __init__(self, annotation_file, images_dir):
-        self.annotation_file = annotation_file
-        self.images_dir = images_dir
+class CustomAnnotationParser:
+    def __init__(self, json_path, images_dir):
+        with open(json_path) as f:
+            annotations_data = json.load(f)
 
-        # Load annotations
-        with open(self.annotation_file) as f:
-            self.annotations = json.load(f)["data"]
+        self.images_dir = Path(images_dir)
+        
+        # Extract image filename from JSON metadata (assuming the image filename is fixed)
+        self.image_filename = annotations_data.get("imagePath", "")
+        
+        # Extract shapes (objects)
+        self.shapes = annotations_data.get("shapes", [])
 
-        # Load image names
-        self.image_names = [image["filename"] for image in self.annotations["images"]]
+        # Creating a mapping of labels to indices
+        self.label_to_id = {shape["label"]: idx + 1 for idx, shape in enumerate(self.shapes)}
 
-    def __len__(self):
-        return len(self.image_names)
+        # Convert polygons to bounding boxes
+        self.annotations = self.convert_polygons_to_boxes(self.shapes)
 
-    def __getitem__(self, idx):
-        # Get the image
-        image_name = self.image_names[idx]
-        image_path = os.path.join(self.images_dir, image_name)
-        image = Image.open(image_path).convert("RGB")
-
-        # Get the annotations for the image
-        image_annotations = self.get_annotations_for_image(image_name)
-
-        # Convert bounding boxes and labels
+    def convert_polygons_to_boxes(self, shapes):
+        """
+        Converts polygons to bounding boxes (x_min, y_min, x_max, y_max).
+        """
         boxes = []
         labels = []
-        for annotation in image_annotations:
-            x_min, y_min, x_max, y_max = annotation["bbox"]
+
+        for shape in shapes:
+            label = shape["label"]
+            points = shape["points"]
+            
+            # Get min/max of the points to form a bounding box
+            x_points = [point[0] for point in points]
+            y_points = [point[1] for point in points]
+            
+            x_min = min(x_points)
+            y_min = min(y_points)
+            x_max = max(x_points)
+            y_max = max(y_points)
+            
             boxes.append([x_min, y_min, x_max, y_max])
-            labels.append(annotation["category_id"])
+            labels.append(self.label_to_id.get(label, 0))  # Default label 0 for unknown labels
 
-        # Convert boxes and labels to tensors
-        boxes = torch.tensor(boxes, dtype=torch.float32)
-        labels = torch.tensor(labels, dtype=torch.int64)
+        return boxes, labels
 
-        # Return image and target (bounding boxes, labels)
+    def __len__(self):
+        return 1  # Assuming one image per JSON for simplicity
+
+    def __getitem__(self, idx):
+        # Load the image
+        image = Image.open(self.images_dir / self.image_filename).convert("RGB")
+
+        # Convert the boxes to tensors
+        boxes = torch.tensor(self.annotations[0], dtype=torch.float32)
+        labels = torch.tensor(self.annotations[1], dtype=torch.int64)
+
+        # Return the image and target dictionary
         target = {
             "boxes": boxes,
-            "labels": labels
+            "labels": labels,
+            "image_id": torch.tensor([idx], dtype=torch.int64)
         }
 
         return image, target
-
-    def get_annotations_for_image(self, image_name):
-        # Filter annotations for the given image
-        return [ann for ann in self.annotations["annotations"] if ann["image_id"] == image_name]

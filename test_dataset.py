@@ -1,15 +1,11 @@
-from annotation_parser import CustomAnnotationParser  # Import your dataset class
+# test_dataset.py
+
+from annotation_parser import CustomAnnotationParser
 from torch.utils.data import DataLoader
-from torchvision import transforms
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import torchvision
 import numpy as np
-
-# Define the transformation (for training only)
-transform = transforms.Compose([
-    transforms.ToTensor(),  # Converts image to tensor
-    transforms.RandomHorizontalFlip()  # Data augmentation
-])
 
 # Update these paths to match your project structure
 ANNOTATION_FILE = "/home/eo/pcb_scratch/0009_1_yuka.json"
@@ -26,11 +22,12 @@ def visualize_sample(image, target):
                                  linewidth=2, edgecolor='r', facecolor='none')
         ax.add_patch(rect)
 
-    plt.show()
+    plt.savefig("output_image.png")  # Save the image instead of showing it
+    plt.close(fig)  # Close the figure to avoid memory issues
 
 def main():
-    # Initialize the dataset and dataloader with the transform
-    dataset = CustomAnnotationParser(ANNOTATION_FILE, IMAGES_DIR, transform=transform)
+    # Initialize the dataset and dataloader
+    dataset = CustomAnnotationParser(ANNOTATION_FILE, IMAGES_DIR)
     
     print(f"Dataset length: {len(dataset)}")  # Debugging the length of the dataset
     
@@ -44,7 +41,7 @@ def main():
     for images, targets in dataloader:
         img = images[0]
         tgt = targets[0]
-        print(f"Image size: {img.size()}, Boxes: {tgt['boxes'].shape}, Labels: {tgt['labels']}")
+        print(f"Image size: {img.size}, Boxes: {tgt['boxes'].shape}, Labels: {tgt['labels']}")
         visualize_sample(img, tgt)
         break  # Test one sample only
 

@@ -2,3 +2,4 @@ venv/
 __pycache__/
 trained_models/
 train_plots/
+test_imgs/

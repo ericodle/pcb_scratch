@@ -1,16 +1,12 @@
-# test_dataset.py
-
 from annotation_parser import CustomAnnotationParser
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-import torchvision
 import numpy as np
 from transforms import get_transform  # Import the transform function
 
 # Update these paths to match your project structure
-ANNOTATION_FILE = "/home/eo/pcb_scratch/0009_1_yuka.json"
-IMAGES_DIR = "/home/eo/pcb_scratch/"
+FOLDER_PATH = "test_imgs"  # Folder containing both images and annotations
 
 def visualize_sample(image, target):
     # Convert from [C, H, W] (Tensor) to [H, W, C] (NumPy)
@@ -31,7 +27,9 @@ def visualize_sample(image, target):
 def main():
     # Initialize the dataset and dataloader with the transform
     transform = get_transform(train=False)  # Use transform for testing (False for no training augmentations)
-    dataset = CustomAnnotationParser(ANNOTATION_FILE, IMAGES_DIR, transform=transform)
+    
+    # Pass folder_path instead of single annotation file
+    dataset = CustomAnnotationParser(FOLDER_PATH, transform=transform)
     
     print(f"Dataset length: {len(dataset)}")  # Debugging the length of the dataset
     

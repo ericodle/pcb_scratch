@@ -1,48 +1,39 @@
+# annotation_parser.py
+
 import json
 from pathlib import Path
-from collections import defaultdict
 import torch
+from torch.utils.data import Dataset
 from PIL import Image
 
-class CustomAnnotationParser:
+class CustomAnnotationParser(Dataset):
     def __init__(self, json_path, images_dir, transform=None):
         with open(json_path) as f:
             annotations_data = json.load(f)
 
         self.images_dir = Path(images_dir)
-        self.transform = transform  # 👈 New: store the transform
+        self.transform = transform
 
-        # Extract image filename from JSON metadata
         self.image_filename = annotations_data.get("imagePath", "")
-        
-        # Extract shapes (objects)
         self.shapes = annotations_data.get("shapes", [])
 
-        # Creating a mapping of labels to indices
-        self.label_to_id = {shape["label"]: idx + 1 for idx, shape in enumerate(self.shapes)}
+        # Map label to ID
+        unique_labels = list(set([s["label"] for s in self.shapes]))
+        self.label_to_id = {label: idx + 1 for idx, label in enumerate(unique_labels)}
 
-        # Convert polygons to bounding boxes
-        self.annotations = self.convert_polygons_to_boxes(self.shapes)
+        self.boxes, self.labels = self.convert_polygons_to_boxes(self.shapes)
 
     def convert_polygons_to_boxes(self, shapes):
         boxes = []
         labels = []
-
         for shape in shapes:
-            label = shape["label"]
             points = shape["points"]
-            
-            x_points = [point[0] for point in points]
-            y_points = [point[1] for point in points]
-            
-            x_min = min(x_points)
-            y_min = min(y_points)
-            x_max = max(x_points)
-            y_max = max(y_points)
-            
+            x_coords = [p[0] for p in points]
+            y_coords = [p[1] for p in points]
+            x_min, y_min = min(x_coords), min(y_coords)
+            x_max, y_max = max(x_coords), max(y_coords)
             boxes.append([x_min, y_min, x_max, y_max])
-            labels.append(self.label_to_id.get(label, 0))
-
+            labels.append(self.label_to_id[shape["label"]])
         return boxes, labels
 
     def __len__(self):
@@ -51,17 +42,15 @@ class CustomAnnotationParser:
     def __getitem__(self, idx):
         image = Image.open(self.images_dir / self.image_filename).convert("RGB")
 
-        boxes = torch.tensor(self.annotations[0], dtype=torch.float32)
-        labels = torch.tensor(self.annotations[1], dtype=torch.int64)
-
+        boxes = torch.tensor(self.boxes, dtype=torch.float32)
+        labels = torch.tensor(self.labels, dtype=torch.int64)
         target = {
             "boxes": boxes,
             "labels": labels,
-            "image_id": torch.tensor([idx], dtype=torch.int64)
+            "image_id": torch.tensor([idx])
         }
 
-        # 👇 Apply transform if provided (only to image)
         if self.transform:
-            image = self.transform(image)
+            image, target = self.transform(image, target)
 
         return image, target

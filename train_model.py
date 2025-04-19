@@ -29,7 +29,10 @@ loss_box_reg_values = []
 loss_objectness_values = []
 loss_rpn_box_reg_values = []
 
-from train import create_optimizer  # Add this import statement
+def create_optimizer(model, learning_rate=0.005):
+    params = [p for p in model.parameters() if p.requires_grad]
+    optimizer = torch.optim.SGD(params, lr=learning_rate, momentum=0.9, weight_decay=0.0005)
+    return optimizer
 
 def train_model_with_loss_tracking(model, data_loader, device, num_epochs=10):
     model.to(device)
@@ -80,10 +83,10 @@ def train_model_with_loss_tracking(model, data_loader, device, num_epochs=10):
 def plot_loss(loss_name, loss_values):
     plt.figure()
     plt.plot(loss_values)
-    plt.title(f'{loss_name} over epochs')
-    plt.xlabel('Iteration')
-    plt.ylabel(f'{loss_name} value')
-    plt.savefig(f"{loss_name}_plot.png")  # Save the plot as a PNG file
+    plt.title(f'train_plots/{loss_name} over epochs')
+    plt.xlabel('train_plots/Iteration')
+    plt.ylabel(f'train_plots/{loss_name} value')
+    plt.savefig(f"train_plots/{loss_name}_plot.png")  # Save the plot as a PNG file
     plt.close()
 
 def train_model(model, data_loader, device, num_epochs=10):

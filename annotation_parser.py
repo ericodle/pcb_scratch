@@ -1,4 +1,4 @@
-# utils/annotation_parser.py
+# annotation_parser.py
 
 import json
 from pathlib import Path

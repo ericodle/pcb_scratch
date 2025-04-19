@@ -38,7 +38,7 @@ def create_optimizer(model, learning_rate=0.005):
     optimizer = torch.optim.SGD(params, lr=learning_rate, momentum=0.9, weight_decay=0.0005)
     return optimizer
 
-def train_model_with_loss_tracking(model, data_loader, device, num_epochs=10):
+def train_model_with_loss_tracking(model, data_loader, device, num_epochs=30):
     model.to(device)
     model.train()
 
@@ -93,21 +93,6 @@ def plot_loss(loss_name, loss_values):
     plt.savefig(f"train_plots/{loss_name}_plot.png")  # Save the plot as a PNG file
     plt.close()
 
-def train_model(model, data_loader, device, num_epochs=10):
-    model.to(device)  # Ensure the model is on the correct device (CPU/GPU)
-
-    optimizer = create_optimizer(model)
-    lr_scheduler = create_lr_scheduler(optimizer)
-
-    for epoch in range(num_epochs):
-        start = time.time()
-
-        train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq=10)
-        lr_scheduler.step()  # Adjust learning rate
-        evaluate(model, data_loader, device)  # Evaluate the model
-
-        print(f"[Epoch {epoch}] Completed in {time.time() - start:.2f} seconds.\n")
-
 
 # Start training with logging and plotting
-train_model_with_loss_tracking(model, data_loader, device, num_epochs=10)
+train_model_with_loss_tracking(model, data_loader, device)

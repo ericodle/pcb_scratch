@@ -53,7 +53,6 @@ def train_model_with_loss_tracking(model, data_loader, device, num_epochs=10):
 
             # Log detailed losses
             logger.info(f"Epoch [{epoch+1}/{num_epochs}] Losses: {loss_dict}")
-            print(f"Losses: {loss_dict}")  # Print losses to the console
 
             # Track individual losses for plotting
             loss_classifier_values.append(loss_dict['loss_classifier'].item())

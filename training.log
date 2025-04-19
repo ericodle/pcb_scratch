@@ -90,3 +90,33 @@ INFO:root:Epoch [9/10] Average Loss: 1.2886
 INFO:root:Epoch [10/10] Losses: {'loss_classifier': tensor(0.5623, device='cuda:0', grad_fn=<NllLossBackward0>), 'loss_box_reg': tensor(0.6574, device='cuda:0', grad_fn=<DivBackward0>), 'loss_objectness': tensor(0.0081, device='cuda:0',
        grad_fn=<BinaryCrossEntropyWithLogitsBackward0>), 'loss_rpn_box_reg': tensor(0.0066, device='cuda:0', grad_fn=<DivBackward0>)}
 INFO:root:Epoch [10/10] Average Loss: 1.2344
+INFO:root:Epoch [1/10] Losses: {'loss_classifier': tensor(2.5426, device='cuda:0', grad_fn=<NllLossBackward0>), 'loss_box_reg': tensor(0.5918, device='cuda:0', grad_fn=<DivBackward0>), 'loss_objectness': tensor(0.3235, device='cuda:0',
+       grad_fn=<BinaryCrossEntropyWithLogitsBackward0>), 'loss_rpn_box_reg': tensor(0.0234, device='cuda:0', grad_fn=<DivBackward0>)}
+INFO:root:Epoch [1/10] Average Loss: 3.4812
+INFO:root:Epoch [2/10] Losses: {'loss_classifier': tensor(1.6541, device='cuda:0', grad_fn=<NllLossBackward0>), 'loss_box_reg': tensor(0.8592, device='cuda:0', grad_fn=<DivBackward0>), 'loss_objectness': tensor(0.0373, device='cuda:0',
+       grad_fn=<BinaryCrossEntropyWithLogitsBackward0>), 'loss_rpn_box_reg': tensor(0.0209, device='cuda:0', grad_fn=<DivBackward0>)}
+INFO:root:Epoch [2/10] Average Loss: 2.5715
+INFO:root:Epoch [3/10] Losses: {'loss_classifier': tensor(1.0226, device='cuda:0', grad_fn=<NllLossBackward0>), 'loss_box_reg': tensor(0.8431, device='cuda:0', grad_fn=<DivBackward0>), 'loss_objectness': tensor(0.0324, device='cuda:0',
+       grad_fn=<BinaryCrossEntropyWithLogitsBackward0>), 'loss_rpn_box_reg': tensor(0.0177, device='cuda:0', grad_fn=<DivBackward0>)}
+INFO:root:Epoch [3/10] Average Loss: 1.9159
+INFO:root:Epoch [4/10] Losses: {'loss_classifier': tensor(1.0865, device='cuda:0', grad_fn=<NllLossBackward0>), 'loss_box_reg': tensor(0.8384, device='cuda:0', grad_fn=<DivBackward0>), 'loss_objectness': tensor(0.0138, device='cuda:0',
+       grad_fn=<BinaryCrossEntropyWithLogitsBackward0>), 'loss_rpn_box_reg': tensor(0.0124, device='cuda:0', grad_fn=<DivBackward0>)}
+INFO:root:Epoch [4/10] Average Loss: 1.9511
+INFO:root:Epoch [5/10] Losses: {'loss_classifier': tensor(1.0660, device='cuda:0', grad_fn=<NllLossBackward0>), 'loss_box_reg': tensor(0.8271, device='cuda:0', grad_fn=<DivBackward0>), 'loss_objectness': tensor(0.0370, device='cuda:0',
+       grad_fn=<BinaryCrossEntropyWithLogitsBackward0>), 'loss_rpn_box_reg': tensor(0.0135, device='cuda:0', grad_fn=<DivBackward0>)}
+INFO:root:Epoch [5/10] Average Loss: 1.9437
+INFO:root:Epoch [6/10] Losses: {'loss_classifier': tensor(0.8206, device='cuda:0', grad_fn=<NllLossBackward0>), 'loss_box_reg': tensor(0.8090, device='cuda:0', grad_fn=<DivBackward0>), 'loss_objectness': tensor(0.0337, device='cuda:0',
+       grad_fn=<BinaryCrossEntropyWithLogitsBackward0>), 'loss_rpn_box_reg': tensor(0.0130, device='cuda:0', grad_fn=<DivBackward0>)}
+INFO:root:Epoch [6/10] Average Loss: 1.6763
+INFO:root:Epoch [7/10] Losses: {'loss_classifier': tensor(0.7767, device='cuda:0', grad_fn=<NllLossBackward0>), 'loss_box_reg': tensor(0.7578, device='cuda:0', grad_fn=<DivBackward0>), 'loss_objectness': tensor(0.0455, device='cuda:0',
+       grad_fn=<BinaryCrossEntropyWithLogitsBackward0>), 'loss_rpn_box_reg': tensor(0.0124, device='cuda:0', grad_fn=<DivBackward0>)}
+INFO:root:Epoch [7/10] Average Loss: 1.5923
+INFO:root:Epoch [8/10] Losses: {'loss_classifier': tensor(0.7512, device='cuda:0', grad_fn=<NllLossBackward0>), 'loss_box_reg': tensor(0.7889, device='cuda:0', grad_fn=<DivBackward0>), 'loss_objectness': tensor(0.0396, device='cuda:0',
+       grad_fn=<BinaryCrossEntropyWithLogitsBackward0>), 'loss_rpn_box_reg': tensor(0.0103, device='cuda:0', grad_fn=<DivBackward0>)}
+INFO:root:Epoch [8/10] Average Loss: 1.5899
+INFO:root:Epoch [9/10] Losses: {'loss_classifier': tensor(0.6858, device='cuda:0', grad_fn=<NllLossBackward0>), 'loss_box_reg': tensor(0.7929, device='cuda:0', grad_fn=<DivBackward0>), 'loss_objectness': tensor(0.0197, device='cuda:0',
+       grad_fn=<BinaryCrossEntropyWithLogitsBackward0>), 'loss_rpn_box_reg': tensor(0.0085, device='cuda:0', grad_fn=<DivBackward0>)}
+INFO:root:Epoch [9/10] Average Loss: 1.5069
+INFO:root:Epoch [10/10] Losses: {'loss_classifier': tensor(0.6329, device='cuda:0', grad_fn=<NllLossBackward0>), 'loss_box_reg': tensor(0.7917, device='cuda:0', grad_fn=<DivBackward0>), 'loss_objectness': tensor(0.0067, device='cuda:0',
+       grad_fn=<BinaryCrossEntropyWithLogitsBackward0>), 'loss_rpn_box_reg': tensor(0.0064, device='cuda:0', grad_fn=<DivBackward0>)}
+INFO:root:Epoch [10/10] Average Loss: 1.4378

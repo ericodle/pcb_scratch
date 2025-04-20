@@ -7,10 +7,10 @@ import os
 
 # --- Config ---
 TEST_IMAGE_PATH = "./test_imgs/0001_1_eric.JPG"
-MODEL_PATH = "./trained_models/faster_rcnn_model.pth"
+MODEL_PATH = "./trained_models/faster_rcnn_trained.pth"
 SAVE_PATH = "./inference_outputs/"
-NUM_CLASSES = 1 + 10  # Change this to match your model
-CONFIDENCE_THRESHOLD = 0.3
+NUM_CLASSES = 1 + 6  # 1 for background, 6 for component classes
+CONFIDENCE_THRESHOLD = 0.7
 ANNOTATIONS_DIR = "./annotations"
 
 print("[INFO] Starting inference script...")

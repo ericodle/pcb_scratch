@@ -5,7 +5,7 @@ import logging
 import matplotlib.pyplot as plt
 from model import create_faster_rcnn_model
 from annotation_parser import CustomAnnotationParser
-from transforms import get_transform
+import torchvision.transforms.functional as F
 from torch.utils.data import DataLoader
 
 # Setup logger
@@ -16,29 +16,18 @@ logger = logging.getLogger()
 FOLDER_PATH = "train_imgs"   # Folder containing both images and annotations
 IMAGES_DIR = os.path.join(FOLDER_PATH, "images")  # Assuming images are stored in a subfolder 'images'
 ANNOTATIONS_DIR = os.path.join(FOLDER_PATH, "annotations")  # Assuming annotations are in a subfolder 'annotations'
-NUM_CLASSES = 1 + 10  # Example with 10 classes
+NUM_CLASSES = 1 + 6  # 1 for background, 6 for component classes
 
-# Data setup
-dataset = CustomAnnotationParser(folder_path=FOLDER_PATH, transform=get_transform(train=True))
-
-data_loader = DataLoader(dataset, batch_size=1, shuffle=True, collate_fn=lambda x: tuple(zip(*x)))
-
-# Set up device and model
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = create_faster_rcnn_model(NUM_CLASSES)
-
-# Initialize loss lists for plotting
-loss_classifier_values = []
-loss_box_reg_values = []
-loss_objectness_values = []
-loss_rpn_box_reg_values = []
+def transform(image, target):
+    image = F.to_tensor(image)
+    return image, target
 
 def create_optimizer(model, learning_rate=0.005):
     params = [p for p in model.parameters() if p.requires_grad]
     optimizer = torch.optim.SGD(params, lr=learning_rate, momentum=0.9, weight_decay=0.0005)
     return optimizer
 
-def train_model_with_loss_tracking(model, data_loader, device, num_epochs=30):
+def train_model_with_loss_tracking(model, data_loader, device, num_epochs=10):
     model.to(device)
     model.train()
 
@@ -76,7 +65,7 @@ def train_model_with_loss_tracking(model, data_loader, device, num_epochs=30):
         # Average loss for this epoch
         avg_loss = total_loss / len(data_loader)
         logger.info(f"Epoch [{epoch+1}/{num_epochs}] Average Loss: {avg_loss:.4f}")
-        print(f"Epoch [{epoch+1}/{num_epochs}] Average Loss: {avg_loss:.4f}")  # Print avg loss to the console
+        print(f"Epoch [{epoch+1}/{num_epochs}] Average Loss: {avg_loss:.4f}") 
 
     # Plot loss components after training
     plot_loss("loss_classifier", loss_classifier_values)
@@ -84,15 +73,34 @@ def train_model_with_loss_tracking(model, data_loader, device, num_epochs=30):
     plot_loss("loss_objectness", loss_objectness_values)
     plot_loss("loss_rpn_box_reg", loss_rpn_box_reg_values)
 
+    # Save the trained model
+    torch.save(model.state_dict(), 'trained_models/faster_rcnn_trained.pth')
+    print("Model saved to 'trained_models")
+    logger.info("Model saved to 'trained_models/faster_rcnn_trained.pth'")
+
 def plot_loss(loss_name, loss_values):
     plt.figure()
     plt.plot(loss_values)
     plt.title(f'train_plots/{loss_name} over epochs')
     plt.xlabel('train_plots/Iteration')
     plt.ylabel(f'train_plots/{loss_name} value')
-    plt.savefig(f"train_plots/{loss_name}_plot.png")  # Save the plot as a PNG file
+    plt.savefig(f"train_plots/{loss_name}_plot.png") 
     plt.close()
 
+# Data setup
+dataset = CustomAnnotationParser(folder_path=FOLDER_PATH, transform=transform)
+
+data_loader = DataLoader(dataset, batch_size=1, shuffle=True, collate_fn=lambda x: tuple(zip(*x)))
+
+# Set up device and model
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = create_faster_rcnn_model(NUM_CLASSES)
+
+# Initialize loss lists for plotting
+loss_classifier_values = []
+loss_box_reg_values = []
+loss_objectness_values = []
+loss_rpn_box_reg_values = []
 
 # Start training with logging and plotting
 train_model_with_loss_tracking(model, data_loader, device)

@@ -5,7 +5,7 @@ import logging
 import matplotlib.pyplot as plt
 import albumentations as A
 import numpy as np
-from model import create_faster_rcnn_model
+from model import create_custom_faster_rcnn
 from annotation_parser import CustomAnnotationParser
 import torchvision.transforms.functional as F
 from torch.utils.data import DataLoader
@@ -189,10 +189,10 @@ def plot_loss(loss_name, loss_values):
 # DATASET AND TRAINING LAUNCH
 # -----------------------------
 dataset = CustomAnnotationParser(folder_path=FOLDER_PATH, transform=transform)
-data_loader = DataLoader(dataset, batch_size=2, shuffle=True, collate_fn=lambda x: tuple(zip(*x)))
+data_loader = DataLoader(dataset, batch_size=1, shuffle=True, collate_fn=lambda x: tuple(zip(*x)))
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = create_faster_rcnn_model(NUM_CLASSES)
+model = create_custom_faster_rcnn(NUM_CLASSES)
 
 # Loss tracking
 loss_classifier_values = []

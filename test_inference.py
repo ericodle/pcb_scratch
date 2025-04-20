@@ -1,7 +1,7 @@
 import torch
 from PIL import Image, ImageDraw
 from torchvision import transforms as T
-from model import create_faster_rcnn_model
+from model import create_custom_faster_rcnn
 from annotation_parser import get_id_to_label_mapping
 import json
 import os
@@ -24,7 +24,7 @@ image_tensor = transform(image).unsqueeze(0)
 print("[INFO] Image loaded and transformed.")
 
 # === LOAD MODEL ===
-model = create_faster_rcnn_model(NUM_CLASSES)
+model = create_custom_faster_rcnn(NUM_CLASSES)
 model.load_state_dict(torch.load(MODEL_PATH, map_location="cpu"))
 model.eval()
 print("[INFO] Model loaded and set to evaluation mode.")

@@ -20,21 +20,21 @@ def transform(image, target):
     image = F.to_tensor(image)
     return image, target
 
-def create_optimizer(model, learning_rate=0.005):
+def create_optimizer(model, learning_rate=0.001):
     params = [p for p in model.parameters() if p.requires_grad]
     optimizer = torch.optim.SGD(params, lr=learning_rate, momentum=0.9, weight_decay=0.0005)
     return optimizer
 
-def train_model_with_loss_tracking(model, data_loader, device, num_epochs=10):
+def train_model_with_loss_tracking(model, data_loader, device, num_epochs=15):
     model.to(device)
     model.train()
 
     # Initialize the optimizer here
-    optimizer = create_optimizer(model)  # Create optimizer using your function
+    optimizer = create_optimizer(model) 
 
     for epoch in range(num_epochs):
         total_loss = 0
-        print(f"Starting epoch {epoch+1}/{num_epochs}...")  # Print info for the current epoch
+        print(f"Starting epoch {epoch+1}/{num_epochs}...") 
 
         for images, targets in data_loader:
             images = [image.to(device) for image in images]
@@ -54,9 +54,9 @@ def train_model_with_loss_tracking(model, data_loader, device, num_epochs=10):
             loss_rpn_box_reg_values.append(loss_dict['loss_rpn_box_reg'].item())
 
             # Backpropagation and optimization
-            optimizer.zero_grad()  # Zero gradients
-            losses.backward()      # Backpropagation
-            optimizer.step()       # Update model parameters
+            optimizer.zero_grad()  
+            losses.backward()      
+            optimizer.step() # Update model parameters
 
             total_loss += losses.item()
 

@@ -4,7 +4,44 @@ from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
-from transforms import get_transform  # Import the transform function
+import torchvision.transforms as T
+import torchvision.transforms.functional as F
+import random
+
+class Compose:
+    def __init__(self, transforms):
+        self.transforms = transforms
+
+    def __call__(self, image, target):
+        for t in self.transforms:
+            image, target = t(image, target)
+        return image, target
+
+class ToTensor:
+    def __call__(self, image, target):
+        image = F.to_tensor(image)
+        return image, target
+
+class RandomHorizontalFlip:
+    def __init__(self, p=0.5):
+        self.p = p
+
+    def __call__(self, image, target):
+        if random.random() < self.p:
+            image = F.hflip(image)
+            width = image.shape[-1]
+            boxes = target["boxes"]
+            boxes[:, [0, 2]] = width - boxes[:, [2, 0]]
+            target["boxes"] = boxes
+        return image, target
+
+def get_transform(train):
+    transforms = [ToTensor()]
+    if train:
+        transforms.append(RandomHorizontalFlip(0.5))
+    return Compose(transforms)
+
+
 
 # Update this path to your folder containing images and JSON annotations
 FOLDER_PATH = "train_imgs"  # Folder containing both images and annotations

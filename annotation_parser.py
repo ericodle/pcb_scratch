@@ -24,7 +24,6 @@ class CustomAnnotationParser(Dataset):
             if not image_filename:
                 continue
 
-            # Get the corresponding image path
             image_path = self.folder_path / image_filename
             if image_path.exists():
                 self.image_paths.append(image_path)
@@ -40,7 +39,7 @@ class CustomAnnotationParser(Dataset):
             for shape in ann.get("shapes", []):
                 all_labels.add(shape["label"])
         
-        return {label: idx + 1 for idx, label in enumerate(all_labels)}
+        return {label: idx + 1 for idx, label in enumerate(sorted(all_labels))}
 
     def convert_polygons_to_boxes(self, shapes):
         boxes = []
@@ -56,10 +55,9 @@ class CustomAnnotationParser(Dataset):
         return boxes, labels
 
     def __len__(self):
-        return len(self.image_paths)  # Return the number of image files
+        return len(self.image_paths)  
 
     def __getitem__(self, idx):
-        # Get the image path and corresponding annotation
         image_path = self.image_paths[idx]
         annotation = self.annotation_data[idx]
 
@@ -80,3 +78,7 @@ class CustomAnnotationParser(Dataset):
             image, target = self.transform(image, target)
 
         return image, target
+
+def get_id_to_label_mapping(folder_path):
+    parser = CustomAnnotationParser(folder_path)
+    return {v: k for k, v in parser.label_to_id.items()}

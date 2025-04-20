@@ -1,20 +1,21 @@
+import os
 import torch
 from PIL import Image, ImageDraw
 from torchvision import transforms as T
 from model import create_faster_rcnn_model
-from annotation_parser import CustomAnnotationParser
-import os
+from annotation_parser import CustomAnnotationParser, get_id_to_label_mapping
 
+# File paths and settings
 TEST_IMAGE_PATH = "./test_imgs/0001_1_eric.JPG"
 MODEL_PATH = "./trained_models/faster_rcnn_trained.pth"
 SAVE_PATH = "./inference_outputs/"
+TRAIN_FOLDER = "./train_imgs"  # Folder containing both images and annotations
 NUM_CLASSES = 1 + 6  # 1 for background, 6 for component classes
-CONFIDENCE_THRESHOLD = 0.7
-ANNOTATIONS_DIR = "./annotations"
+CONFIDENCE_THRESHOLD = 0.9
 
 print("[INFO] Starting inference script...")
 
-# Create output directory
+# Create output directory if not exists
 os.makedirs(SAVE_PATH, exist_ok=True)
 
 # Preprocessing transform
@@ -24,13 +25,13 @@ transform = T.Compose([
 
 # Load image
 image = Image.open(TEST_IMAGE_PATH).convert("RGB")
-image_tensor = transform(image).unsqueeze(0)  
+image_tensor = transform(image).unsqueeze(0)  # Add batch dimension
 print("[INFO] Image loaded and transformed.")
 
-# Load model
+# Load the trained model
 model = create_faster_rcnn_model(NUM_CLASSES)
 model.load_state_dict(torch.load(MODEL_PATH, map_location=torch.device('cpu')))
-model.eval()
+model.eval()  # Set model to evaluation mode
 print("[INFO] Model loaded and set to evaluation mode.")
 
 # Run inference
@@ -38,15 +39,11 @@ with torch.no_grad():
     predictions = model(image_tensor)
 print("[INFO] Inference complete.")
 
-# Load label mappings
+# Load label mappings from training data
 print("[INFO] Loading label mappings from training data...")
 try:
-    dummy_dataset = CustomAnnotationParser(folder_path=ANNOTATIONS_DIR)
-    if dummy_dataset.label_to_id:
-        id_to_label = {v: k for k, v in dummy_dataset.label_to_id.items()}
-        print(f"[DEBUG] Label mapping: {id_to_label}")
-    else:
-        raise ValueError("No labels found in training data.")
+    id_to_label = get_id_to_label_mapping(TRAIN_FOLDER)  # Pass TRAIN_FOLDER here
+    print(f"[DEBUG] Label mapping: {id_to_label}")
 except Exception as e:
     print(f"[WARNING] Could not load label mappings: {e}")
     print("[INFO] Using fallback label mapping (numeric labels).")

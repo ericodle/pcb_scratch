@@ -14,8 +14,6 @@ logger = logging.getLogger()
 
 # File paths and settings
 FOLDER_PATH = "train_imgs"   # Folder containing both images and annotations
-IMAGES_DIR = os.path.join(FOLDER_PATH, "images")  # Assuming images are stored in a subfolder 'images'
-ANNOTATIONS_DIR = os.path.join(FOLDER_PATH, "annotations")  # Assuming annotations are in a subfolder 'annotations'
 NUM_CLASSES = 1 + 6  # 1 for background, 6 for component classes
 
 def transform(image, target):

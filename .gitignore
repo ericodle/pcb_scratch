@@ -6,4 +6,4 @@ test_imgs/
 train_imgs/
 reconstructed_images/
 inference_outputs/
-training.log
+logs/

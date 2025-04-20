@@ -9,7 +9,7 @@ import torchvision.transforms.functional as F
 from torch.utils.data import DataLoader
 
 # Setup logger
-logging.basicConfig(filename='training.log', level=logging.INFO)
+logging.basicConfig(filename='logs/training.log', level=logging.INFO)
 logger = logging.getLogger()
 
 # File paths and settings

@@ -12,7 +12,7 @@ TEST_IMAGE_PATH = "./test_imgs/0001_1_eric.JPG"
 MODEL_PATH = "./trained_models/faster_rcnn_trained.pth"
 SAVE_PATH = "./inference_outputs/"
 NUM_CLASSES = 1 + 6  # 1 background + 6 component types
-CONFIDENCE_THRESHOLD = 0.9
+CONFIDENCE_THRESHOLD = 0.8
 
 print("[INFO] Starting inference script...")
 os.makedirs(SAVE_PATH, exist_ok=True)

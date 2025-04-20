@@ -1,5 +1,5 @@
 import torch
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 from torchvision import transforms as T
 from model import create_custom_faster_rcnn
 from annotation_parser import get_id_to_label_mapping
@@ -51,6 +51,14 @@ boxes = predictions[0]["boxes"]
 labels = predictions[0]["labels"]
 scores = predictions[0]["scores"]
 
+
+# Load font once (adjust path and size as needed)
+try:
+    font = ImageFont.truetype("DejaVuSans.ttf", 60)
+except IOError:
+    print("[WARNING] 'arial.ttf' not found, using default font.")
+    font = ImageFont.load_default()
+
 for box, label, score in zip(boxes, labels, scores):
     if score >= CONFIDENCE_THRESHOLD:
         box = box.tolist()
@@ -62,16 +70,14 @@ for box, label, score in zip(boxes, labels, scores):
         detection_results.append(display_text)
 
         # Draw prediction
-        text_bbox = draw.textbbox((0, 0), display_text)
+        text_bbox = draw.textbbox((0, 0), display_text, font=font)
         text_w = text_bbox[2] - text_bbox[0]
         text_h = text_bbox[3] - text_bbox[1]
         text_origin = (box[0], box[1] - text_h if box[1] - text_h > 0 else box[1] + 5)
 
-        draw.rectangle(box, outline="red", width=2)
+        draw.rectangle(box, outline="red", width=10)
         draw.rectangle([text_origin, (text_origin[0] + text_w, text_origin[1] + text_h)], fill="red")
-        draw.text(text_origin, display_text, fill="white")
-
-print(f"[INFO] Detected component counts: {dict(predicted_counts)}")
+        draw.text(text_origin, display_text, fill="white", font=font)
 
 # === LOAD GROUND TRUTH ===
 json_path = TEST_IMAGE_PATH.replace(".JPG", ".json").replace(".jpg", ".json")

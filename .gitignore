@@ -1,8 +1,8 @@
 venv/
 __pycache__/
-trained_models/
-train_plots/
-train_imgs/
-reconstructed_images/
-inference_outputs/
-logs/
+trained_models/*
+train_plots/*
+train_imgs/*
+reconstructed_imgs/*
+inference_outputs/*
+logs/*

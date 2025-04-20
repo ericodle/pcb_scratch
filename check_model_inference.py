@@ -8,7 +8,7 @@ import os
 from collections import Counter
 
 # === CONFIG ===
-TEST_IMAGE_PATH = "./test_imgs/0001_1_eric.JPG"
+TEST_IMAGE_PATH = "./test_img/0001_1_eric.JPG"
 MODEL_PATH = "./trained_models/faster_rcnn_trained.pth"
 SAVE_PATH = "./inference_outputs/"
 NUM_CLASSES = 1 + 6  # 1 background + 6 component types

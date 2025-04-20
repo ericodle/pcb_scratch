@@ -25,27 +25,34 @@ NUM_CLASSES = 1 + 6  # 1 for background + 6 component classes
 albumentations_transform = A.Compose([
     A.HorizontalFlip(p=0.5),
     A.RandomBrightnessContrast(p=0.2),
-    A.ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.1, rotate_limit=10, p=0.5),
+    A.Affine(scale=(0.9, 1.1), translate_percent=(0.0, 0.0625), rotate=(-10, 10), p=0.5),
     A.RandomSizedBBoxSafeCrop(height=512, width=512, p=0.5),
     A.Blur(p=0.1),
     A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
     ToTensorV2()
 ], bbox_params=A.BboxParams(format='pascal_voc', label_fields=['labels']))
 
+USE_ALBUMENTATIONS = False
+
 def transform(image, target):
+    if not USE_ALBUMENTATIONS:
+        # Just convert the image and target to tensors and return
+        image = F.to_tensor(image)
+        target['boxes'] = target['boxes'].float()
+        target['labels'] = target['labels'].long()
+        return image, target
+
     # Convert PIL to numpy
     image_np = np.array(image)
     
     # Convert boxes from Tensor to list format
     bboxes = target['boxes'].tolist()
     labels = target['labels'].tolist()
-    
+
     transformed = albumentations_transform(image=image_np, bboxes=bboxes, labels=labels)
-    
+
     image = transformed['image']
-    target['boxes'] = torch.tensor(transformed['bboxes'])
-    
-    # Ensure labels are of type int64
+    target['boxes'] = torch.tensor(transformed['bboxes'], dtype=torch.float32)
     target['labels'] = torch.tensor(transformed['labels'], dtype=torch.int64)
 
     return image, target

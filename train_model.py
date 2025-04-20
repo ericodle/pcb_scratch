@@ -3,10 +3,13 @@ import time
 import torch
 import logging
 import matplotlib.pyplot as plt
+import albumentations as A
+import numpy as np
 from model import create_faster_rcnn_model
 from annotation_parser import CustomAnnotationParser
 import torchvision.transforms.functional as F
 from torch.utils.data import DataLoader
+from albumentations.pytorch import ToTensorV2
 
 # Setup logger
 logging.basicConfig(filename='logs/training.log', level=logging.INFO)
@@ -16,14 +19,36 @@ logger = logging.getLogger()
 FOLDER_PATH = "train_imgs"
 NUM_CLASSES = 1 + 6  # 1 for background + 6 component classes
 
-def transform(image, target):
-    image = F.to_tensor(image)
-    return image, target
+# -----------------------------
+# DATA AUGMENTATION WITH ALBUMENTATIONS
+# -----------------------------
+albumentations_transform = A.Compose([
+    A.HorizontalFlip(p=0.5),
+    A.RandomBrightnessContrast(p=0.2),
+    A.ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.1, rotate_limit=10, p=0.5),
+    A.RandomSizedBBoxSafeCrop(height=512, width=512, p=0.5),
+    A.Blur(p=0.1),
+    A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+    ToTensorV2()
+], bbox_params=A.BboxParams(format='pascal_voc', label_fields=['labels']))
 
-def create_optimizer(model, learning_rate=0.001):
-    params = [p for p in model.parameters() if p.requires_grad]
-    optimizer = torch.optim.SGD(params, lr=learning_rate, momentum=0.9, weight_decay=0.0005)
-    return optimizer
+def transform(image, target):
+    # Convert PIL to numpy
+    image_np = np.array(image)
+    
+    # Convert boxes from Tensor to list format
+    bboxes = target['boxes'].tolist()
+    labels = target['labels'].tolist()
+    
+    transformed = albumentations_transform(image=image_np, bboxes=bboxes, labels=labels)
+    
+    image = transformed['image']
+    target['boxes'] = torch.tensor(transformed['bboxes'])
+    
+    # Ensure labels are of type int64
+    target['labels'] = torch.tensor(transformed['labels'], dtype=torch.int64)
+
+    return image, target
 
 # -----------------------------
 # IoU CALCULATION UTILITIES
@@ -43,7 +68,7 @@ def compute_iou(box1, box2):
         return 0.0
 
     area1 = (box1[2] - box1[0]) * (box1[3] - box1[1])
-    area2 = (box2[2] - box2[0]) * (box2[3] - box2[1])
+    area2 = (box2[2] - box2[0]) * (box2[3] - box1[1])
     union = area1 + area2 - intersection
 
     return intersection / union
@@ -71,11 +96,25 @@ def evaluate_iou(model, dataset, device, num_samples=10):
     model.train()
     return sum(ious) / len(ious) if ious else 0.0
 
+import torch.optim as optim
+
+def create_optimizer(model, lr=1e-4):
+    """
+    Create an optimizer for Faster R-CNN model
+    """
+    params = [p for p in model.parameters() if p.requires_grad]
+    
+    # Create the Adam optimizer with the specified learning rate
+    optimizer = optim.Adam(params, lr=lr, weight_decay=1e-4)
+    
+    return optimizer
 # -----------------------------
 # TRAINING FUNCTION
 # -----------------------------
 def train_model_with_loss_tracking(model, data_loader, device, num_epochs=15):
     model.to(device)
+    print(f"Using device: {device}")
+
     model.train()
     optimizer = create_optimizer(model)
 

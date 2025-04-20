@@ -182,7 +182,7 @@ def plot_loss(loss_name, loss_values):
 # DATASET AND TRAINING LAUNCH
 # -----------------------------
 dataset = CustomAnnotationParser(folder_path=FOLDER_PATH, transform=transform)
-data_loader = DataLoader(dataset, batch_size=1, shuffle=True, collate_fn=lambda x: tuple(zip(*x)))
+data_loader = DataLoader(dataset, batch_size=2, shuffle=True, collate_fn=lambda x: tuple(zip(*x)))
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = create_faster_rcnn_model(NUM_CLASSES)
